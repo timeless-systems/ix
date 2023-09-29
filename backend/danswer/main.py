@@ -26,18 +26,25 @@ from danswer.configs.app_configs import SECRET
 from danswer.configs.app_configs import WEB_DOMAIN
 from danswer.configs.model_configs import API_BASE_OPENAI
 from danswer.configs.model_configs import API_TYPE_OPENAI
+from danswer.configs.model_configs import ASYM_PASSAGE_PREFIX
+from danswer.configs.model_configs import ASYM_QUERY_PREFIX
+from danswer.configs.model_configs import DOCUMENT_ENCODER_MODEL
 from danswer.configs.model_configs import GEN_AI_MODEL_VERSION
 from danswer.configs.model_configs import INTERNAL_MODEL_VERSION
+from danswer.configs.model_configs import SKIP_RERANKING
 from danswer.datastores.document_index import get_default_document_index
 from danswer.db.credentials import create_initial_public_credential
 from danswer.direct_qa.llm_utils import get_default_qa_model
 from danswer.server.chat_backend import router as chat_router
 from danswer.server.credential import router as credential_router
+from danswer.server.document_set import router as document_set_router
 from danswer.server.event_loading import router as event_processing_router
 from danswer.server.health import router as health_router
 from danswer.server.manage import router as admin_router
 from danswer.server.search_backend import router as backend_router
+from danswer.server.slack_bot_management import router as slack_bot_management_router
 from danswer.server.users import router as user_router
+from danswer.utils.acl import set_acl_for_vespa
 from danswer.utils.logger import setup_logger
 
 
@@ -73,6 +80,8 @@ def get_application() -> FastAPI:
     application.include_router(admin_router)
     application.include_router(user_router)
     application.include_router(credential_router)
+    application.include_router(document_set_router)
+    application.include_router(slack_bot_management_router)
     application.include_router(health_router)
 
     application.include_router(
@@ -179,6 +188,13 @@ def get_application() -> FastAPI:
                 else:
                     logger.debug("OAuth is turned on")
 
+        if SKIP_RERANKING:
+            logger.info("Reranking step of search flow is disabled")
+
+        logger.info(f'Using Embedding model: "{DOCUMENT_ENCODER_MODEL}"')
+        logger.info(f'Query embedding prefix: "{ASYM_QUERY_PREFIX}"')
+        logger.info(f'Passage embedding prefix: "{ASYM_PASSAGE_PREFIX}"')
+
         logger.info("Warming up local NLP models.")
         warm_up_models()
         qa_model = get_default_qa_model()
@@ -197,6 +213,10 @@ def get_application() -> FastAPI:
 
         logger.info("Verifying Document Index(s) is/are available.")
         get_default_document_index().ensure_indices_exist()
+
+        # TODO: remove this once everyone is migrated to ACL
+        logger.info("Populating Access Control List fields in Vespa")
+        set_acl_for_vespa()
 
     return application
 
