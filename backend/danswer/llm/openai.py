@@ -1,5 +1,6 @@
 import os
 from typing import Any
+from typing import cast
 
 from langchain.chat_models.openai import ChatOpenAI
 
@@ -24,9 +25,12 @@ class OpenAIGPT(LangChainChatLLM):
         # server from starting up
         if not api_key:
             api_key = os.environ.get("OPENAI_API_KEY") or "dummy_api_key"
+
         self._llm = ChatOpenAI(
             model=model_version,
             openai_api_key=api_key,
+            # Prefer using None which is the default value, endpoint could be empty string
+            openai_api_base=cast(str, kwargs.get("endpoint")) or None,
             max_tokens=max_output_tokens,
             temperature=temperature,
             request_timeout=timeout,
