@@ -114,6 +114,15 @@ export default async function AdminLayout({
                 {
                   name: (
                     <div className="flex">
+                      <JiraIcon size={16} />
+                      <div className="ml-1">Langchain</div>
+                    </div>
+                  ),
+                  link: "/admin/connectors/langchain",
+                },
+                {
+                  name: (
+                    <div className="flex">
                       <LinearIcon size={16} />
                       <div className="ml-1">Linear</div>
                     </div>

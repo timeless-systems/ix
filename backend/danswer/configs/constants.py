@@ -53,6 +53,7 @@ class DocumentSource(str, Enum):
     CONFLUENCE = "confluence"
     SLAB = "slab"
     JIRA = "jira"
+    LANGCHAIN = "langchain"
     PRODUCTBOARD = "productboard"
     FILE = "file"
     NOTION = "notion"
