@@ -10,6 +10,7 @@ const sources: Source[] = [
   { displayName: "BookStack", internalName: "bookstack" },
   { displayName: "Confluence", internalName: "confluence" },
   { displayName: "Jira", internalName: "jira" },
+  { displayName: "Langchain", internalName: "langchain" },
   { displayName: "Productboard", internalName: "productboard" },
   { displayName: "Slab", internalName: "slab" },
   { displayName: "Github PRs", internalName: "github" },

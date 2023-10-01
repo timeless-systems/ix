@@ -63,6 +63,7 @@ def _process_file(file_name: str, file: IO[Any]) -> list[Document]:
         else:
             file_content_raw += line
 
+    logger.info(f"file_content_raw : {file_content_raw}")
     return [
         Document(
             id=file_name,
@@ -91,8 +92,13 @@ class LocalFileConnector(LoadConnector):
         for file_location in self.file_locations:
             files = _open_files_at_location(file_location)
 
+            logger.info(f"files : {files}")
+
             for file_name, file in files:
                 documents.extend(_process_file(file_name, file))
+                logger.info(f"documents : {documents}")
+                logger.info(f"len documents : {len(documents)}")
+                logger.info(f"self.batch_size : {self.batch_size}")
 
                 if len(documents) >= self.batch_size:
                     yield documents

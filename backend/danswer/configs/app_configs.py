@@ -232,3 +232,8 @@ ENABLE_DANSWERBOT_REFLEXION = (
 ENABLE_SLACK_DOC_FEEDBACK = (
     os.environ.get("ENABLE_SLACK_DOC_FEEDBACK", "").lower() == "true"
 )
+
+## LANGCHAIN_FILE
+DOCS_SOURCE_DIRECTORY = os.environ.get('DOCS_SOURCE_DIRECTORY', './source_documents')
+DOCS_PROCESSED_DIRECTORY = os.environ.get('DOCS_PROCESSED_DIRECTORY', './processed_documents')
+
