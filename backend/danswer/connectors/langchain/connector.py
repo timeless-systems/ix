@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import threading
 import sys
 import glob
 from pathlib import Path
@@ -48,6 +49,7 @@ logger.info(f"Starting ingestion")
 #  Load environment variables
 # Custom document loaders
 
+
 class MyElmLoader(UnstructuredEmailLoader):
     """Wrapper to fallback to text/plain whe/Users/ts1/development/vianai/HilaEnterprise/kombucha-backend/backend/utilsn default does not work"""
 
@@ -71,15 +73,18 @@ class MyElmLoader(UnstructuredEmailLoader):
 
 
 class LangchainFileConnector(LoadConnector):
-    def __init__( self,
-        file_locations: list[Path | str],
-        batch_size: int = INDEX_BATCH_SIZE,) -> None:
+    def __init__(self,
+                 file_locations: list[Path | str],
+                 batch_size: int = INDEX_BATCH_SIZE,) -> None:
 
         folder_names_to_check = [
             DOCS_SOURCE_DIRECTORY,
-            DOCS_PROCESSED_DIRECTORY, 
+            DOCS_PROCESSED_DIRECTORY,
         ]
-        
+
+        # Create a lock for thread-safe access to results list
+        self.results_lock = threading.Lock()
+
         self._check_folder(folder_names_to_check)
 
 # Map file extensions to document loaders and their arguments
@@ -100,13 +105,13 @@ class LangchainFileConnector(LoadConnector):
             ".txt": (TextLoader, {"encoding": "utf8"}),
             # Add more mappings for other file extensions and loaders as needed
         }
- 
+
     def load_credentials(self, credentials: dict[str, Any]) -> dict[str, Any] | None:
         pass
 
     def load_from_state(self) -> GenerateDocumentsOutput:
         documents: list[Document] = []
-     
+
         documents = self._process_documents()
 
         # persist data
@@ -125,35 +130,45 @@ class LangchainFileConnector(LoadConnector):
             else:
                 logger.info(f"Folder '{folder_name}' already exists.")
 
-    def _load_single_document_from_filesystem(self, file_path: str) -> Document:
+    def _load_single_document_from_filesystem(self, file_path: str, results: List[Document]) -> None:
         logger.info(f"Loading {file_path}")
-        ext = "." + file_path.rsplit(".", 1)[-1]
-        if ext in self.LOADER_MAPPING:
-            loader_class, loader_args = self.LOADER_MAPPING[ext]
-            loader = loader_class(file_path, **loader_args)
-            loaded_document = loader.load()[0]
+        
+        try:
+            ext = "." + file_path.rsplit(".", 1)[-1]
+            if ext in self.LOADER_MAPPING:
+                loader_class, loader_args = self.LOADER_MAPPING[ext]
+                loader = loader_class(file_path, **loader_args)
+                loaded_document = loader.load()[0]
 
-            metadata = {}
+                metadata = {}
 
-            document = Document(
+                document = Document(
                     id=file_path,
                     sections=[Section(link=metadata.get("link", ""), text=loaded_document)],
                     source=file_path,
                     semantic_identifier=file_path,
                     metadata={},
                 )
-        
-            timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-            original_file_name = os.path.basename(file_path)
-            new_file_name = f"{timestamp}_{original_file_name}"
-            destination_path = os.path.join(
-                DOCS_PROCESSED_DIRECTORY, new_file_name)
-            
-            shutil.move(file_path, destination_path)
-            return document
 
-        raise ValueError(f"Unsupported file extension '{ext}'")
-    
+                timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+                original_file_name = os.path.basename(file_path)
+                new_file_name = f"{timestamp}_{original_file_name}"
+                destination_path = os.path.join(
+                    DOCS_PROCESSED_DIRECTORY, new_file_name)
+
+                shutil.move(file_path, destination_path)
+
+                with self.results_lock:
+                    results.append(document)
+
+                logger.info(f"results {results}")
+
+            else:
+                raise ValueError(f"Unsupported file extension '{ext}'")
+        except Exception as e:
+            logger.error(f"An error occurred while loading {file_path}: {e}")
+            
+
     def _load_documents_from_filesystem(self, source_dir: str, ignored_files: List[str] = []) -> List[Document]:
         """
         Loads all documents from the source documents directory, ignoring specified files
@@ -169,15 +184,29 @@ class LangchainFileConnector(LoadConnector):
 
         logger.info(f"Found {len(filtered_files)} documents to be processed")
 
-        with Pool(processes=os.cpu_count()) as pool:
-            results = []
-            with tqdm(total=len(filtered_files), desc='Loading new documents ', ncols=80) as pbar:
-                for i, doc in enumerate(pool.imap_unordered(self._load_single_document_from_filesystem, filtered_files)):
-                    results.append(doc)
-                    pbar.update()
+        results = []
+        threads = []
 
+        with tqdm(total=len(filtered_files), desc='Loading new documents ', ncols=80) as pbar:
+            for file_path in filtered_files:
+                logger.info(f"1")
+                thread = threading.Thread(target=self._load_single_document_from_filesystem, args=(file_path, results))
+                logger.info(f"2")
+                thread.start()
+                logger.info(f"3")
+
+            # Wait for all threads to finish
+            for thread in threading.enumerate():
+                logger.info(f"4")
+                if thread != threading.current_thread():
+                    logger.info(f"5")
+                    thread.join(timeout=30)   
+                    logger.info(f"5")
+
+        logger.info(f"6")
+        logger.info(f"final results : {results}")
         return results
-    
+
     def _process_documents(self, ignored_files: List[str] = []) -> List[Document]:
         """
         Load documents and split in chunks
@@ -185,7 +214,7 @@ class LangchainFileConnector(LoadConnector):
 
         logger.info(f"Loading documents from {DOCS_SOURCE_DIRECTORY}")
         documents = self._load_documents_from_filesystem(
-                DOCS_SOURCE_DIRECTORY, ignored_files)
+            DOCS_SOURCE_DIRECTORY, ignored_files)
 
         logger.info(
             f"Loaded {len(documents)} documents from {DOCS_SOURCE_DIRECTORY}")
@@ -193,19 +222,19 @@ class LangchainFileConnector(LoadConnector):
         if documents:
             print(f"documents : {documents}")
             return documents
-        else:  
-            print(f"NOTHING") 
+        else:
+            print(f"NOTHING")
             return None
 
 
 if __name__ == "__main__":
     credentials = {}
-    connector = LangchainFileConnector(file_locations=['/Users/ts1/development/vianai/HilaEnterprise/kombucha-backend/backend/utils/test_data'])
+    connector = LangchainFileConnector(file_locations=[
+                                       '/Users/ts1/development/backend/utils/test_data'])
     connector.load_credentials(credentials)
     document_batches = connector.load_from_state()
     if document_batches:
         print("Documents found")
-        print(f" a: {document_batches}")
         print(next(document_batches))
     else:
         print("No documents found")

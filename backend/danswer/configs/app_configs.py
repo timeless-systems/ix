@@ -122,6 +122,10 @@ GOOGLE_DRIVE_FOLLOW_SHORTCUTS = False
 FILE_CONNECTOR_TMP_STORAGE_PATH = os.environ.get(
     "FILE_CONNECTOR_TMP_STORAGE_PATH", "/home/file_connector_storage"
 )
+LANGCHAIN_CONNECTOR_TMP_STORAGE_PATH = os.environ.get(
+    "LANGCHAIN_CONNECTOR_TMP_STORAGE_PATH", "/home/langchain_connector_storage/source_documents"
+)
+
 # TODO these should be available for frontend configuration, via advanced options expandable
 WEB_CONNECTOR_IGNORED_CLASSES = os.environ.get(
     "WEB_CONNECTOR_IGNORED_CLASSES", "sidebar,footer"
@@ -234,6 +238,6 @@ ENABLE_SLACK_DOC_FEEDBACK = (
 )
 
 ## LANGCHAIN_FILE
-DOCS_SOURCE_DIRECTORY = os.environ.get('DOCS_SOURCE_DIRECTORY', './source_documents')
-DOCS_PROCESSED_DIRECTORY = os.environ.get('DOCS_PROCESSED_DIRECTORY', './processed_documents')
+DOCS_SOURCE_DIRECTORY = os.environ.get('DOCS_SOURCE_DIRECTORY', '/home/langchain_connector_storage/source_documents')
+DOCS_PROCESSED_DIRECTORY = os.environ.get('DOCS_PROCESSED_DIRECTORY', '/home/langchain_connector_storage/processed_documents')
 

@@ -50,6 +50,7 @@ services:
     volumes:
       - local_dynamic_storage:/home/storage
       - file_connector_tmp_storage:/home/file_connector_storage
+      - langchain_connector_tmp_storage:/home/langchain_connector_storage
       - model_cache_torch:/root/.cache/torch/
       - model_cache_nltk:/root/nltk_data/
       - model_cache_huggingface:/root/.cache/huggingface/
@@ -94,6 +95,7 @@ services:
     volumes:
       - local_dynamic_storage:/home/storage
       - file_connector_tmp_storage:/home/file_connector_storage
+      - langchain_connector_tmp_storage:/home/langchain_connector_storage
       - model_cache_torch:/root/.cache/torch/
       - model_cache_nltk:/root/nltk_data/
       - model_cache_huggingface:/root/.cache/huggingface/
@@ -151,6 +153,7 @@ services:
 volumes:
   local_dynamic_storage:
   file_connector_tmp_storage:  # used to store files uploaded by the user temporarily while we are indexing them
+  langchain_connector_tmp_storage:  # used to store files uploaded by the user temporarily while we are indexing them
   db_volume:
   vespa_volume:
   model_cache_torch:
