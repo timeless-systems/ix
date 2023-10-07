@@ -21,7 +21,9 @@ from danswer.background.connector_deletion import (
 from danswer.configs.app_configs import DISABLE_GENERATIVE_AI
 from danswer.configs.app_configs import GENERATIVE_MODEL_ACCESS_CHECK_FREQ
 from danswer.configs.constants import GEN_AI_API_KEY_STORAGE_KEY
+from danswer.configs.app_configs import DOCS_SOURCE_DIRECTORY
 from danswer.connectors.file.utils import write_temp_files
+from danswer.connectors.langchain.utils import write_temp_files_b
 from danswer.connectors.google_drive.connector_auth import build_service_account_creds
 from danswer.connectors.google_drive.connector_auth import DB_CREDENTIALS_DICT_TOKEN_KEY
 from danswer.connectors.google_drive.connector_auth import delete_google_app_cred
@@ -85,6 +87,8 @@ from danswer.server.models import RunConnectorRequest
 from danswer.server.models import StatusResponse
 from danswer.server.models import UserRoleResponse
 from danswer.utils.logger import setup_logger
+from danswer.configs.app_configs import FILE_CONNECTOR_TMP_STORAGE_PATH
+from danswer.configs.app_configs import LANGCHAIN_CONNECTOR_TMP_STORAGE_PATH
 
 router = APIRouter(prefix="/manage")
 logger = setup_logger()
@@ -215,7 +219,7 @@ def delete_google_service_account_key(
 @router.put("/admin/connector/google-drive/service-account-credential")
 def upsert_service_account_credential(
     service_account_credential_request: GoogleServiceAccountCredentialRequest,
-    user: User | None = Depends(current_admin_user),
+    user: User = Depends(current_admin_user),
     db_session: Session = Depends(get_session),
 ) -> ObjectCreationIdResponse:
     """Special API which allows the creation of a credential for a service account.
@@ -225,12 +229,12 @@ def upsert_service_account_credential(
         credential_base = build_service_account_creds(
             delegated_user_email=service_account_credential_request.google_drive_delegated_user
         )
+        print(credential_base)
     except ConfigNotFoundError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
     # first delete all existing service account credentials
     delete_google_drive_service_account_credentials(user, db_session)
-    # `user=None` since this credential is not a personal credential
     return create_credential(
         credential_data=credential_base, user=user, db_session=db_session
     )
@@ -280,7 +284,22 @@ def upload_files(
             raise HTTPException(status_code=400, detail="File name cannot be empty")
     try:
         file_paths = write_temp_files(
-            [(cast(str, file.filename), file.file) for file in files]
+            [(cast(str, file.filename), file.file) for file in files], FILE_CONNECTOR_TMP_STORAGE_PATH
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return FileUploadResponse(file_paths=file_paths)
+
+@router.post("/admin/connector/langchain/upload")
+def upload_files(
+    files: list[UploadFile], _: User = Depends(current_admin_user)
+) -> FileUploadResponse:
+    for file in files:
+        if not file.filename:
+            raise HTTPException(status_code=400, detail="File name cannot be empty")
+    try:
+        file_paths = write_temp_files_b(
+            [(cast(str, file.filename), file.file) for file in files], LANGCHAIN_CONNECTOR_TMP_STORAGE_PATH
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -322,7 +341,7 @@ def get_connector_indexing_status(
                 name=cc_pair.name,
                 connector=ConnectorSnapshot.from_connector_db_model(connector),
                 credential=CredentialSnapshot.from_credential_db_model(credential),
-                public_doc=cc_pair.is_public,
+                public_doc=credential.public_doc,
                 owner=credential.user.email if credential.user else "",
                 last_status=cc_pair.last_attempt_status,
                 last_success=cc_pair.last_successful_index_time,
