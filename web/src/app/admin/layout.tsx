@@ -19,11 +19,11 @@ import {
   LinearIcon,
   UsersIcon,
   ThumbsUpIcon,
+  HubSpotIcon,
   BookmarkIcon,
   CPUIcon,
 } from "@/components/icons/icons";
-import { DISABLE_AUTH } from "@/lib/constants";
-import { getCurrentUserSS } from "@/lib/userSS";
+import { getAuthDisabledSS, getCurrentUserSS } from "@/lib/userSS";
 import { redirect } from "next/navigation";
 
 export default async function AdminLayout({
@@ -31,9 +31,12 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let user = null;
-  if (!DISABLE_AUTH) {
-    user = await getCurrentUserSS();
+  const [authDisabled, user] = await Promise.all([
+    getAuthDisabledSS(),
+    getCurrentUserSS(),
+  ]);
+
+  if (!authDisabled) {
     if (!user) {
       return redirect("/auth/login");
     }
@@ -191,6 +194,15 @@ export default async function AdminLayout({
                     </div>
                   ),
                   link: "/admin/connectors/file",
+                },
+                {
+                  name: (
+                    <div className="flex">
+                      <HubSpotIcon size={16} />
+                      <div className="ml-1">HubSpot</div>
+                    </div>
+                  ),
+                  link: "/admin/connectors/hubspot",
                 },
               ],
             },

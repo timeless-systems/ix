@@ -27,7 +27,6 @@ const Main = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [filesAreUploading, setFilesAreUploading] = useState<boolean>(false);
   const { popup, setPopup } = usePopup();
-  console.log(popup);
 
   const { mutate } = useSWRConfig();
 
@@ -55,8 +54,9 @@ const Main = () => {
       {filesAreUploading && <Spinner />}
       <p className="text-sm mb-2">
         Specify files below, click the <b>Upload</b> button, and the contents of
-        these files will be searchable via Danswer! Currently only <i>.txt</i>{" "}
-        and <i>.zip</i> files (containing only <i>.txt</i> files) are supported.
+        these files will be searchable via Danswer! Currently only <i>.txt</i>,{" "}
+        <i>.pdf</i> and <i>.zip</i> files (containing only <i>.txt</i> files)
+        are supported.
       </p>
       <div className="text-sm mb-3">
         <b>NOTE:</b> if the original document is accessible via a link, you can

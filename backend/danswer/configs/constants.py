@@ -27,6 +27,7 @@ BOOST = "boost"
 SCORE = "score"
 ID_SEPARATOR = ":;:"
 DEFAULT_BOOST = 0
+SESSION_KEY = "session"
 
 # Prompt building constants:
 GENERAL_SEP_PAT = "\n-----\n"
@@ -58,6 +59,7 @@ class DocumentSource(str, Enum):
     NOTION = "notion"
     ZULIP = "zulip"
     LINEAR = "linear"
+    HUBSPOT = "hubspot"
 
 
 class DocumentIndexType(str, Enum):
@@ -78,6 +80,14 @@ class DanswerGenAIModel(str, Enum):
     HUGGINGFACE_CHAT = "huggingface-client-chat-completion"
     REQUEST = "request-completion"
     TRANSFORMERS = "transformers"
+
+
+class AuthType(str, Enum):
+    DISABLED = "disabled"
+    BASIC = "basic"
+    GOOGLE_OAUTH = "google_oauth"
+    OIDC = "oidc"
+    SAML = "saml"
 
 
 class ModelHostType(str, Enum):
