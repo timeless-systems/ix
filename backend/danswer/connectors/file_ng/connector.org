@@ -36,7 +36,6 @@ from danswer.configs.app_configs import DOCS_PROCESSED_DIRECTORY
 from danswer.connectors.interfaces import LoadConnector
 from danswer.connectors.interfaces import GenerateDocumentsOutput
 from danswer.connectors.file_ng.utils import check_folder
-
 from danswer.utils.logger import setup_logger
 
 _METADATA_FLAG = "#DANSWER_METADATA="
@@ -44,8 +43,12 @@ _METADATA_FLAG = "#DANSWER_METADATA="
 logger = setup_logger()
 
 # Usage without socket connection (optional)
+
+logger.info(f"Starting ingestion")
+
 #  Load environment variables
 # Custom document loaders
+
 
 class MyElmLoader(UnstructuredEmailLoader):
     """Wrapper to fallback to text/plain whe/Users/ts1/development/vianai/HilaEnterprise/kombucha-backend/backend/utilsn default does not work"""
@@ -69,7 +72,7 @@ class MyElmLoader(UnstructuredEmailLoader):
         return doc
 
 
-class LangchainFileConnector(LoadConnector):
+class FileNGConnector(LoadConnector):
     def __init__(self,
                  file_locations: list[Path | str],
                  batch_size: int = INDEX_BATCH_SIZE,) -> None:
@@ -113,9 +116,6 @@ class LangchainFileConnector(LoadConnector):
 
         # persist data
         if documents:
-            logger.info('#######')
-            logger.info(f"documents_langchain : {documents}")
-            logger.info('#######')
             yield documents
 
     def _load_single_document_from_filesystem(self, file_path: str, results: List[Document]) -> None:

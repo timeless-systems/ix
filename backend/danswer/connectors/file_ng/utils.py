@@ -15,7 +15,9 @@ logger = setup_logger()
 
 def get_file_ext(file_path_or_name: str | Path) -> str:
     _, extension = os.path.splitext(file_path_or_name)
+    logger.debug(f"extension : {extension}")
     return extension
+
 
 def check_file_ext_is_valid(ext: str) -> bool:
     return ext in _VALID_FILE_EXTENSIONS

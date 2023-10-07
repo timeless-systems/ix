@@ -78,6 +78,12 @@ export const getSourceMetadata = (sourceType: ValidSources): SourceMetadata => {
           displayName: "Langchain",
           adminPageLink: "/admin/connectors/langchain",
         };
+        case "file_ng":
+          return {
+            icon: JiraIcon,
+            displayName: "File NG",
+            adminPageLink: "/admin/connectors/file_ng",
+          };
     case "productboard":
       return {
         icon: ProductboardIcon,

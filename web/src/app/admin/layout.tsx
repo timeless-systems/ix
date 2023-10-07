@@ -123,6 +123,15 @@ export default async function AdminLayout({
                 {
                   name: (
                     <div className="flex">
+                      <JiraIcon size={16} />
+                      <div className="ml-1">File NG</div>
+                    </div>
+                  ),
+                  link: "/admin/connectors/file_ng",
+                },
+                {
+                  name: (
+                    <div className="flex">
                       <LinearIcon size={16} />
                       <div className="ml-1">Linear</div>
                     </div>

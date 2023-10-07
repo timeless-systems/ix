@@ -11,6 +11,7 @@ const sources: Source[] = [
   { displayName: "Confluence", internalName: "confluence" },
   { displayName: "Jira", internalName: "jira" },
   { displayName: "Langchain", internalName: "langchain" },
+  { displayName: "File NG", internalName: "file_ng" },
   { displayName: "Productboard", internalName: "productboard" },
   { displayName: "Slab", internalName: "slab" },
   { displayName: "Github PRs", internalName: "github" },

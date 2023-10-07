@@ -54,6 +54,7 @@ class DocumentSource(str, Enum):
     SLAB = "slab"
     JIRA = "jira"
     LANGCHAIN = "langchain"
+    FILENG = "file_ng"
     PRODUCTBOARD = "productboard"
     FILE = "file"
     NOTION = "notion"

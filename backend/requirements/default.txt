@@ -53,3 +53,6 @@ transformers==4.30.1
 typesense==0.15.1
 uvicorn==0.21.1
 zulip==0.8.2
+
+## Timeless
+pdfminer.six==20221105
