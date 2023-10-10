@@ -54,15 +54,16 @@ class DocumentSource(str, Enum):
     CONFLUENCE = "confluence"
     SLAB = "slab"
     JIRA = "jira"
+    LANGCHAIN = "langchain"
     PRODUCTBOARD = "productboard"
     FILE = "file"
+    FILE_NG = "file_ng"
     NOTION = "notion"
     ZULIP = "zulip"
     LINEAR = "linear"
     HUBSPOT = "hubspot"
     GONG = "gong"
     GOOGLE_SITES = "google_sites"
-
 
 class DocumentIndexType(str, Enum):
     COMBINED = "combined"  # Vespa

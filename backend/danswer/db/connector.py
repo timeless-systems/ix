@@ -26,6 +26,7 @@ def fetch_connectors(
     disabled_status: bool | None = None,
 ) -> list[Connector]:
     stmt = select(Connector)
+    logger.info(f"stmt: {stmt}")
     if sources is not None:
         stmt = stmt.where(Connector.source.in_(sources))
     if input_types is not None:
@@ -33,6 +34,7 @@ def fetch_connectors(
     if disabled_status is not None:
         stmt = stmt.where(Connector.disabled == disabled_status)
     results = db_session.scalars(stmt)
+    logger.info(f"results.all: {results.all()}")
     return list(results.all())
 
 

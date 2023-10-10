@@ -6,6 +6,8 @@ from danswer.connectors.bookstack.connector import BookstackConnector
 from danswer.connectors.confluence.connector import ConfluenceConnector
 from danswer.connectors.danswer_jira.connector import JiraConnector
 from danswer.connectors.file.connector import LocalFileConnector
+#from danswer.connectors.langchain.connector import LangchainFileConnector
+#from danswer.connectors.file_ng.connector import LocalFileNGConnector
 from danswer.connectors.github.connector import GithubConnector
 from danswer.connectors.gong.connector import GongConnector
 from danswer.connectors.google_drive.connector import GoogleDriveConnector

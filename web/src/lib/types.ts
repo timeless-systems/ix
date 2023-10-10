@@ -15,6 +15,8 @@ export type ValidSources =
   | "bookstack"
   | "confluence"
   | "jira"
+  | "langchain"
+  | "file_ng"
   | "productboard"
   | "slab"
   | "notion"
