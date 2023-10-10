@@ -19,10 +19,12 @@ export type ValidSources =
   | "slab"
   | "notion"
   | "guru"
+  | "gong"
   | "zulip"
   | "linear"
   | "hubspot"
-  | "file";
+  | "file"
+  | "google_sites";
 export type ValidInputTypes = "load_state" | "poll" | "event";
 export type ValidStatuses =
   | "success"
@@ -96,6 +98,10 @@ export interface SlabConfig {
 
 export interface GuruConfig {}
 
+export interface GongConfig {
+  workspaces?: string[];
+}
+
 export interface FileConfig {
   file_locations: string[];
 }
@@ -108,6 +114,11 @@ export interface ZulipConfig {
 export interface NotionConfig {}
 
 export interface HubSpotConfig {}
+
+export interface GoogleSitesConfig {
+  zip_path: string;
+  base_url: string;
+}
 
 export interface IndexAttemptSnapshot {
   status: ValidStatuses | null;
@@ -201,6 +212,11 @@ export interface ZulipCredentialJson {
 export interface GuruCredentialJson {
   guru_user: string;
   guru_user_token: string;
+}
+
+export interface GongCredentialJson {
+  gong_access_key: string;
+  gong_access_key_secret: string;
 }
 
 export interface LinearCredentialJson {
