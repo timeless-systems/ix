@@ -97,24 +97,15 @@ export function StatusRow<ConnectorConfigType, ConnectorCredentialType>({
   );
 }
 
-export interface ColumnSpecification<
-  ConnectorConfigType,
-  ConnectorCredentialType
-> {
+interface ColumnSpecification<ConnectorConfigType> {
   header: string;
   key: string;
   getValue: (
-    ccPairStatus: ConnectorIndexingStatus<
-      ConnectorConfigType,
-      ConnectorCredentialType
-    >
+    connector: Connector<ConnectorConfigType>
   ) => JSX.Element | string | undefined;
 }
 
-export interface ConnectorsTableProps<
-  ConnectorConfigType,
-  ConnectorCredentialType
-> {
+interface ConnectorsTableProps<ConnectorConfigType, ConnectorCredentialType> {
   connectorIndexingStatuses: ConnectorIndexingStatus<
     ConnectorConfigType,
     ConnectorCredentialType
@@ -125,11 +116,7 @@ export interface ConnectorsTableProps<
   ) => JSX.Element | string;
   onUpdate: () => void;
   onCredentialLink?: (connectorId: number) => void;
-  specialColumns?: ColumnSpecification<
-    ConnectorConfigType,
-    ConnectorCredentialType
-  >[];
-  includeName?: boolean;
+  specialColumns?: ColumnSpecification<ConnectorConfigType>[];
 }
 
 export function ConnectorsTable<ConnectorConfigType, ConnectorCredentialType>({
@@ -139,7 +126,6 @@ export function ConnectorsTable<ConnectorConfigType, ConnectorCredentialType>({
   specialColumns,
   onUpdate,
   onCredentialLink,
-  includeName = false,
 }: ConnectorsTableProps<ConnectorConfigType, ConnectorCredentialType>) {
   const [popup, setPopup] = useState<{
     message: string;
@@ -150,7 +136,6 @@ export function ConnectorsTable<ConnectorConfigType, ConnectorCredentialType>({
     getCredential !== undefined && onCredentialLink !== undefined;
 
   const columns = [
-    ...(includeName ? [{ header: "Name", key: "name" }] : []),
     ...(specialColumns ?? []),
     {
       header: "Status",
@@ -217,14 +202,9 @@ export function ConnectorsTable<ConnectorConfigType, ConnectorCredentialType>({
               ? Object.fromEntries(
                   specialColumns.map(({ key, getValue }, i) => [
                     key,
-                    getValue(connectorIndexingStatus),
+                    getValue(connector),
                   ])
                 )
-              : {}),
-            ...(includeName
-              ? {
-                  name: connectorIndexingStatus.name || "",
-                }
               : {}),
           };
           // index: (

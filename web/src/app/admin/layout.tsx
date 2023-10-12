@@ -1,16 +1,42 @@
-import { Layout } from "@/components/admin/Layout";
+import { Header } from "@/components/Header";
+import { Sidebar } from "@/components/admin/connectors/Sidebar";
+import {
+  NotebookIcon,
+  GithubIcon,
+  GlobeIcon,
+  GoogleDriveIcon,
+  SlackIcon,
+  KeyIcon,
+  BookstackIcon,
+  ConfluenceIcon,
+  GuruIcon,
+  FileIcon,
+  JiraIcon,
+  SlabIcon,
+  NotionIcon,
+  ZulipIcon,
+  ProductboardIcon,
+  LinearIcon,
+  UsersIcon,
+  ThumbsUpIcon,
+  HubSpotIcon,
+  BookmarkIcon,
+  CPUIcon,
+} from "@/components/icons/icons";
+import { getAuthDisabledSS, getCurrentUserSS } from "@/lib/userSS";
+import { redirect } from "next/navigation";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [authDisabled, user] = await Promise.all([
+    getAuthDisabledSS(),
+    getCurrentUserSS(),
+  ]);
 
-  return await Layout({ children });
-
-  let user = null;
-  if (!DISABLE_AUTH) {
-    user = await getCurrentUserSS();
+  if (!authDisabled) {
     if (!user) {
       return redirect("/auth/login");
     }
@@ -87,24 +113,6 @@ export default async function AdminLayout({
                     </div>
                   ),
                   link: "/admin/connectors/jira",
-                },
-                {
-                  name: (
-                    <div className="flex">
-                      <JiraIcon size={16} />
-                      <div className="ml-1">Langchain</div>
-                    </div>
-                  ),
-                  link: "/admin/connectors/langchain",
-                },
-                {
-                  name: (
-                    <div className="flex">
-                      <JiraIcon size={16} />
-                      <div className="ml-1">File NG</div>
-                    </div>
-                  ),
-                  link: "/admin/connectors/file_ng",
                 },
                 {
                   name: (
@@ -187,6 +195,15 @@ export default async function AdminLayout({
                   ),
                   link: "/admin/connectors/file",
                 },
+                {
+                  name: (
+                    <div className="flex">
+                      <HubSpotIcon size={16} />
+                      <div className="ml-1">HubSpot</div>
+                    </div>
+                  ),
+                  link: "/admin/connectors/hubspot",
+                },
               ],
             },
             {
@@ -262,5 +279,4 @@ export default async function AdminLayout({
       </div>
     </div>
   );
-
 }

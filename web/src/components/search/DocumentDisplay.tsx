@@ -165,7 +165,7 @@ export const DocumentDisplay = ({
           )}
         </div>
       </div>
-      <p className="pl-1 pt-2 pb-3 text-gray-200 break-words">
+      <p className="pl-1 pt-2 pb-3 text-gray-200">
         {buildDocumentSummaryDisplay(document.match_highlights, document.blurb)}
       </p>
     </div>

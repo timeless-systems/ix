@@ -156,11 +156,8 @@ const Main = () => {
                 {
                   header: "Repository",
                   key: "repository",
-                  getValue: (ccPairStatus) => {
-                    const connectorConfig =
-                      ccPairStatus.connector.connector_specific_config;
-                    return `${connectorConfig.repo_owner}/${connectorConfig.repo_name}`;
-                  },
+                  getValue: (connector) =>
+                    `${connector.connector_specific_config.repo_owner}/${connector.connector_specific_config.repo_name}`,
                 },
               ]}
               onUpdate={() =>

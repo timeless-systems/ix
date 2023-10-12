@@ -220,18 +220,16 @@ const Main = () => {
                     {
                       header: "Url",
                       key: "url",
-                      getValue: (ccPairStatus) => {
-                        const connectorConfig =
-                          ccPairStatus.connector.connector_specific_config;
-                        return (
-                          <a
-                            className="text-blue-500"
-                            href={connectorConfig.jira_project_url}
-                          >
-                            {connectorConfig.jira_project_url}
-                          </a>
-                        );
-                      },
+                      getValue: (connector) => (
+                        <a
+                          className="text-blue-500"
+                          href={
+                            connector.connector_specific_config.jira_project_url
+                          }
+                        >
+                          {connector.connector_specific_config.jira_project_url}
+                        </a>
+                      ),
                     },
                   ]}
                   onUpdate={() =>
