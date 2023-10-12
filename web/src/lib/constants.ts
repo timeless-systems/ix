@@ -1,4 +1,4 @@
-export const DISABLE_AUTH = process.env.DISABLE_AUTH?.toLowerCase() === "true";
+export type AuthType = "disabled" | "google_oauth" | "oidc" | "saml";
 
 export const OAUTH_NAME = process.env.OAUTH_NAME || "Google";
 

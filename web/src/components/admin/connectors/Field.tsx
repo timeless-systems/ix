@@ -1,7 +1,15 @@
 import { Button } from "@/components/Button";
-import { ArrayHelpers, ErrorMessage, Field, FieldArray } from "formik";
+import {
+  ArrayHelpers,
+  ErrorMessage,
+  Field,
+  FieldArray,
+  useField,
+  useFormikContext,
+} from "formik";
 import * as Yup from "yup";
 import { FormBodyBuilder } from "./types";
+import { Dropdown, Option } from "@/components/Dropdown";
 
 interface TextFormFieldProps {
   name: string;
@@ -24,7 +32,7 @@ export const TextFormField = ({
 }: TextFormFieldProps) => {
   return (
     <div className="mb-4">
-      <label htmlFor={name} className="block">
+      <label htmlFor={name} className="block font-medium">
         {label}
       </label>
       {subtext && <p className="text-xs mb-1">{subtext}</p>}
@@ -73,7 +81,7 @@ export const BooleanFormField = ({
       <label className="flex text-sm">
         <Field name={name} type="checkbox" className="mx-3 px-5" />
         <div>
-          {label}
+          <p className="font-medium">{label}</p>
           {subtext && <p className="text-xs">{subtext}</p>}
         </div>
       </label>
@@ -104,7 +112,7 @@ export function TextArrayField<T extends Yup.AnyObject>({
 }: TextArrayFieldProps<T>) {
   return (
     <div className="mb-4">
-      <label htmlFor={name} className="block">
+      <label htmlFor={name} className="block font-medium">
         {label}
       </label>
       {subtext && <p className="text-xs">{subtext}</p>}
@@ -171,4 +179,44 @@ export function TextArrayFieldBuilder<T extends Yup.AnyObject>(
     <TextArrayField {...props} values={values} />
   );
   return _TextArrayField;
+}
+
+interface SelectorFormFieldProps {
+  name: string;
+  label: string;
+  options: Option[];
+  subtext?: string;
+}
+
+export function SelectorFormField({
+  name,
+  label,
+  options,
+  subtext,
+}: SelectorFormFieldProps) {
+  const [field] = useField<string>(name);
+  const { setFieldValue } = useFormikContext();
+
+  return (
+    <div className="mb-4">
+      <label className="flex mb-2">
+        <div>
+          {label}
+          {subtext && <p className="text-xs">{subtext}</p>}
+        </div>
+      </label>
+
+      <Dropdown
+        options={options}
+        selected={field.value}
+        onSelect={(selected) => setFieldValue(name, selected.value)}
+      />
+
+      <ErrorMessage
+        name={name}
+        component="div"
+        className="text-red-500 text-sm mt-1"
+      />
+    </div>
+  );
 }

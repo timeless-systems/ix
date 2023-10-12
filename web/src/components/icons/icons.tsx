@@ -4,7 +4,6 @@ import {
   Notebook,
   Key,
   Trash,
-  Info,
   XSquare,
   LinkBreak,
   Link,
@@ -33,21 +32,25 @@ import {
   FiCopy,
   FiBookmark,
   FiCpu,
+  FiInfo,
 } from "react-icons/fi";
 import { SiBookstack } from "react-icons/si";
 import Image from "next/image";
 import jiraSVG from "../../../public/Jira.svg";
 import confluenceSVG from "../../../public/Confluence.svg";
 import guruIcon from "../../../public/Guru.svg";
+import gongIcon from "../../../public/Gong.png";
 import zulipIcon from "../../../public/Zulip.png";
 import linearIcon from "../../../public/Linear.png";
+import hubSpotIcon from "../../../public/HubSpot.png";
+import googleSitesIcon from "../../../public/GoogleSites.png";
 
 interface IconProps {
   size?: number;
   className?: string;
 }
 
-const defaultTailwindCSS = "my-auto flex flex-shrink-0 text-blue-400";
+export const defaultTailwindCSS = "my-auto flex flex-shrink-0 text-blue-400";
 
 export const PlugIcon = ({
   size = 16,
@@ -123,7 +126,7 @@ export const InfoIcon = ({
   size = 16,
   className = defaultTailwindCSS,
 }: IconProps) => {
-  return <Info size={size} className={className} />;
+  return <FiInfo size={size} className={className} />;
 };
 
 export const QuestionIcon = ({
@@ -421,3 +424,44 @@ export const GuruIcon = ({
     <Image src={guruIcon} alt="Logo" width="96" height="96" />
   </div>
 );
+
+export const GongIcon = ({
+  size = 16,
+  className = defaultTailwindCSS,
+}: IconProps) => (
+  <div
+    style={{ width: `${size}px`, height: `${size}px` }}
+    className={`w-[${size}px] h-[${size}px] ` + className}
+  >
+    <Image src={gongIcon} alt="Logo" width="96" height="96" />
+  </div>
+);
+
+export const HubSpotIcon = ({
+  size = 16,
+  className = defaultTailwindCSS,
+}: IconProps) => {
+  return (
+    <div
+      // HubSpot Icon has a bit more surrounding whitespace than other icons, which is why we need to adjust it here
+      style={{ width: `${size + 4}px`, height: `${size + 4}px` }}
+      className={`w-[${size + 4}px] h-[${size + 4}px] -m-0.5 ` + className}
+    >
+      <Image src={hubSpotIcon} alt="Logo" width="96" height="96" />
+    </div>
+  );
+};
+
+export const GoogleSitesIcon = ({
+  size = 16,
+  className = defaultTailwindCSS,
+}: IconProps) => {
+  return (
+    <div
+      style={{ width: `${size}px`, height: `${size}px` }}
+      className={`w-[${size}px] h-[${size}px] ` + className}
+    >
+      <Image src={googleSitesIcon} alt="Logo" width="96" height="96" />
+    </div>
+  );
+};

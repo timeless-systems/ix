@@ -9,8 +9,11 @@ from danswer.connectors.file.connector import LocalFileConnector
 #from danswer.connectors.langchain.connector import LangchainFileConnector
 #from danswer.connectors.file_ng.connector import LocalFileNGConnector
 from danswer.connectors.github.connector import GithubConnector
+from danswer.connectors.gong.connector import GongConnector
 from danswer.connectors.google_drive.connector import GoogleDriveConnector
+from danswer.connectors.google_site.connector import GoogleSitesConnector
 from danswer.connectors.guru.connector import GuruConnector
+from danswer.connectors.hubspot.connector import HubSpotConnector
 from danswer.connectors.interfaces import BaseConnector
 from danswer.connectors.interfaces import EventConnector
 from danswer.connectors.interfaces import LoadConnector
@@ -52,6 +55,9 @@ def identify_connector_class(
         DocumentSource.ZULIP: ZulipConnector,
         DocumentSource.GURU: GuruConnector,
         DocumentSource.LINEAR: LinearConnector,
+        DocumentSource.HUBSPOT: HubSpotConnector,
+        DocumentSource.GONG: GongConnector,
+        DocumentSource.GOOGLE_SITES: GoogleSitesConnector,
     }
     connector_by_source = connector_map.get(source, {})
 

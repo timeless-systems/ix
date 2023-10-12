@@ -1,21 +1,25 @@
 from datetime import datetime
 from typing import Any
 from typing import Generic
-from typing import Literal
 from typing import Optional
 from typing import TypeVar
 from uuid import UUID
 
 from pydantic import BaseModel
+from pydantic import validator
 from pydantic.generics import GenericModel
 
+from danswer.auth.schemas import UserRole
+from danswer.bots.slack.config import VALID_SLACK_FILTERS
 from danswer.configs.app_configs import MASK_CREDENTIAL_PREFIX
+from danswer.configs.constants import AuthType
 from danswer.configs.constants import DocumentSource
 from danswer.configs.constants import MessageType
 from danswer.configs.constants import QAFeedbackType
 from danswer.configs.constants import SearchFeedbackType
 from danswer.connectors.models import InputType
 from danswer.datastores.interfaces import IndexFilter
+from danswer.db.models import AllowedAnswerFilters
 from danswer.db.models import ChannelConfig
 from danswer.db.models import Connector
 from danswer.db.models import Credential
@@ -38,6 +42,10 @@ class StatusResponse(GenericModel, Generic[DataT]):
     data: Optional[DataT] = None
 
 
+class AuthTypeResponse(BaseModel):
+    auth_type: AuthType
+
+
 class DataRequest(BaseModel):
     data: str
 
@@ -45,6 +53,15 @@ class DataRequest(BaseModel):
 class HelperResponse(BaseModel):
     values: dict[str, str]
     details: list[str] | None = None
+
+
+class UserInfo(BaseModel):
+    id: str
+    email: str
+    is_active: bool
+    is_superuser: bool
+    is_verified: bool
+    role: UserRole
 
 
 class GoogleAppWebCredentials(BaseModel):
@@ -82,10 +99,6 @@ class GoogleServiceAccountCredentialRequest(BaseModel):
 
 class FileUploadResponse(BaseModel):
     file_paths: list[str]
-
-
-class HealthCheckResponse(BaseModel):
-    status: Literal["ok"]
 
 
 class ObjectCreationIdResponse(BaseModel):
@@ -153,6 +166,14 @@ class QAFeedbackRequest(BaseModel):
     feedback: QAFeedbackType
 
 
+class ChatFeedbackRequest(BaseModel):
+    chat_session_id: int
+    message_number: int
+    edit_number: int
+    is_positive: bool | None = None
+    feedback_text: str | None = None
+
+
 class SearchFeedbackRequest(BaseModel):
     query_id: int
     document_id: str
@@ -189,8 +210,14 @@ class RenameChatSessionResponse(BaseModel):
     new_name: str  # This is only really useful if the name is generated
 
 
-class ChatSessionIdsResponse(BaseModel):
-    sessions: list[int]
+class ChatSession(BaseModel):
+    id: int
+    name: str
+    time_created: str
+
+
+class ChatSessionsResponse(BaseModel):
+    sessions: list[ChatSession]
 
 
 class ChatMessageDetail(BaseModel):
@@ -309,7 +336,7 @@ class RunConnectorRequest(BaseModel):
 
 class CredentialBase(BaseModel):
     credential_json: dict[str, Any]
-    public_doc: bool
+    is_admin: bool
 
 
 class CredentialSnapshot(CredentialBase):
@@ -326,7 +353,7 @@ class CredentialSnapshot(CredentialBase):
             if MASK_CREDENTIAL_PREFIX
             else credential.credential_json,
             user_id=credential.user_id,
-            public_doc=credential.public_doc,
+            is_admin=credential.is_admin,
             time_created=credential.time_created,
             time_updated=credential.time_updated,
         )
@@ -424,7 +451,18 @@ class SlackBotConfigCreationRequest(BaseModel):
     # for now for simplicity / speed of development
     document_sets: list[int]
     channel_names: list[str]
-    answer_validity_check_enabled: bool
+    respond_tag_only: bool = False
+    # If no team members, assume respond in the channel to everyone
+    respond_team_member_list: list[str] = []
+    answer_filters: list[AllowedAnswerFilters] = []
+
+    @validator("answer_filters", pre=True)
+    def validate_filters(cls, value: list[str]) -> list[str]:
+        if any(test not in VALID_SLACK_FILTERS for test in value):
+            raise ValueError(
+                f"Slack Answer filters must be one of {VALID_SLACK_FILTERS}"
+            )
+        return value
 
 
 class SlackBotConfig(BaseModel):

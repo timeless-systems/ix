@@ -8,7 +8,6 @@ import { fetcher } from "@/lib/fetcher";
 import { HealthCheckBanner } from "@/components/health/healthcheck";
 import { ConnectorIndexingStatus, FileConfig } from "@/lib/types";
 import { linkCredential } from "@/lib/credential";
-import { FileUpload } from "./FileUpload";
 import { useState } from "react";
 import { usePopup } from "@/components/admin/connectors/Popup";
 import { createConnector, runConnector } from "@/lib/connector";
@@ -17,6 +16,7 @@ import { SingleUseConnectorsTable } from "@/components/admin/connectors/table/Si
 import { LoadingAnimation } from "@/components/Loading";
 import { Form, Formik } from "formik";
 import { TextFormField } from "@/components/admin/connectors/Field";
+import { FileUpload } from "@/components/admin/connectors/FileUpload";
 
 const getNameFromPath = (path: string) => {
   const pathParts = path.split("/");
@@ -27,7 +27,6 @@ const Main = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [filesAreUploading, setFilesAreUploading] = useState<boolean>(false);
   const { popup, setPopup } = usePopup();
-  console.log(popup);
 
   const { mutate } = useSWRConfig();
 
@@ -55,8 +54,9 @@ const Main = () => {
       {filesAreUploading && <Spinner />}
       <p className="text-sm mb-2">
         Specify files below, click the <b>Upload</b> button, and the contents of
-        these files will be searchable via Danswer! Currently only <i>.txt</i>{" "}
-        and <i>.zip</i> files (containing only <i>.txt</i> files) are supported.
+        these files will be searchable via Danswer! Currently only <i>.txt</i>,{" "}
+        <i>.pdf</i> and <i>.zip</i> files (containing only <i>.txt</i> files)
+        are supported.
       </p>
       <div className="text-sm mb-3">
         <b>NOTE:</b> if the original document is accessible via a link, you can
@@ -216,8 +216,8 @@ const Main = () => {
               {
                 header: "File Names",
                 key: "file_names",
-                getValue: (connector) =>
-                  connector.connector_specific_config.file_locations
+                getValue: (ccPairStatus) =>
+                  ccPairStatus.connector.connector_specific_config.file_locations
                     .map(getNameFromPath)
                     .join(", "),
               },

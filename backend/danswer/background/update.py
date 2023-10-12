@@ -37,6 +37,7 @@ from danswer.db.models import Connector
 from danswer.db.models import IndexAttempt
 from danswer.db.models import IndexingStatus
 from danswer.search.search_utils import warm_up_models
+from danswer.utils.acl import set_acl_for_vespa_nonblocking
 from danswer.utils.logger import IndexAttemptSingleton
 from danswer.utils.logger import setup_logger
 
@@ -286,13 +287,9 @@ def _run_indexing(
                     f"Indexing batch of documents: {[doc.to_short_descriptor() for doc in doc_batch]}"
                 )
 
-                index_user_id = (
-                    None if db_credential.public_doc else db_credential.user_id
-                )
                 new_docs, total_batch_chunks = indexing_pipeline(
                     documents=doc_batch,
                     index_attempt_metadata=IndexAttemptMetadata(
-                        user_id=index_user_id,
                         connector_id=db_connector.id,
                         credential_id=db_credential.id,
                     ),
@@ -451,6 +448,12 @@ def update_loop(delay: int = 10, num_workers: int = NUM_INDEXING_WORKERS) -> Non
         # Previous version did not always clean up cc-pairs well leaving some connectors undeleteable
         # This ensures that bad states get cleaned up
         mark_all_in_progress_cc_pairs_failed(db_session)
+
+    # TODO: remove this once everyone is migrated to ACL
+    # does nothing if this has been successfully run before
+    # NOTE: is done in another thread, to not block indexing runs from
+    # getting kicked off
+    set_acl_for_vespa_nonblocking(should_check_if_already_done=True)
 
     while True:
         start = time.time()

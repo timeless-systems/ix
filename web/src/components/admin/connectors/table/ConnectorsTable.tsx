@@ -97,13 +97,24 @@ export function StatusRow<ConnectorConfigType, ConnectorCredentialType>({
   );
 }
 
-interface ColumnSpecification<ConnectorConfigType> {
+export interface ColumnSpecification<
+  ConnectorConfigType,
+  ConnectorCredentialType
+> {
   header: string;
   key: string;
-  getValue: (connector: Connector<ConnectorConfigType>) => JSX.Element | string;
+  getValue: (
+    ccPairStatus: ConnectorIndexingStatus<
+      ConnectorConfigType,
+      ConnectorCredentialType
+    >
+  ) => JSX.Element | string | undefined;
 }
 
-interface ConnectorsTableProps<ConnectorConfigType, ConnectorCredentialType> {
+export interface ConnectorsTableProps<
+  ConnectorConfigType,
+  ConnectorCredentialType
+> {
   connectorIndexingStatuses: ConnectorIndexingStatus<
     ConnectorConfigType,
     ConnectorCredentialType
@@ -114,7 +125,11 @@ interface ConnectorsTableProps<ConnectorConfigType, ConnectorCredentialType> {
   ) => JSX.Element | string;
   onUpdate: () => void;
   onCredentialLink?: (connectorId: number) => void;
-  specialColumns?: ColumnSpecification<ConnectorConfigType>[];
+  specialColumns?: ColumnSpecification<
+    ConnectorConfigType,
+    ConnectorCredentialType
+  >[];
+  includeName?: boolean;
 }
 
 export function ConnectorsTable<ConnectorConfigType, ConnectorCredentialType>({
@@ -124,6 +139,7 @@ export function ConnectorsTable<ConnectorConfigType, ConnectorCredentialType>({
   specialColumns,
   onUpdate,
   onCredentialLink,
+  includeName = false,
 }: ConnectorsTableProps<ConnectorConfigType, ConnectorCredentialType>) {
   const [popup, setPopup] = useState<{
     message: string;
@@ -134,6 +150,7 @@ export function ConnectorsTable<ConnectorConfigType, ConnectorCredentialType>({
     getCredential !== undefined && onCredentialLink !== undefined;
 
   const columns = [
+    ...(includeName ? [{ header: "Name", key: "name" }] : []),
     ...(specialColumns ?? []),
     {
       header: "Status",
@@ -200,9 +217,14 @@ export function ConnectorsTable<ConnectorConfigType, ConnectorCredentialType>({
               ? Object.fromEntries(
                   specialColumns.map(({ key, getValue }, i) => [
                     key,
-                    getValue(connector),
+                    getValue(connectorIndexingStatus),
                   ])
                 )
+              : {}),
+            ...(includeName
+              ? {
+                  name: connectorIndexingStatus.name || "",
+                }
               : {}),
           };
           // index: (

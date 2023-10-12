@@ -14,6 +14,7 @@ from danswer.db.slack_bot_config import fetch_slack_bot_configs
 from danswer.db.slack_bot_config import insert_slack_bot_config
 from danswer.db.slack_bot_config import remove_slack_bot_config
 from danswer.db.slack_bot_config import update_slack_bot_config
+from danswer.dynamic_configs.interface import ConfigNotFoundError
 from danswer.server.models import DocumentSet
 from danswer.server.models import SlackBotConfig
 from danswer.server.models import SlackBotConfigCreationRequest
@@ -23,13 +24,19 @@ from danswer.server.models import SlackBotTokens
 router = APIRouter(prefix="/manage")
 
 
-@router.post("/admin/slack-bot/config")
-def create_slack_bot_config(
+def _form_channel_config(
     slack_bot_config_creation_request: SlackBotConfigCreationRequest,
-    db_session: Session = Depends(get_session),
-    _: User | None = Depends(current_admin_user),
-) -> SlackBotConfig:
-    if not slack_bot_config_creation_request.channel_names:
+    current_slack_bot_config_id: int | None,
+    db_session: Session,
+) -> ChannelConfig:
+    raw_channel_names = slack_bot_config_creation_request.channel_names
+    respond_tag_only = slack_bot_config_creation_request.respond_tag_only
+    respond_team_member_list = (
+        slack_bot_config_creation_request.respond_team_member_list
+    )
+    answer_filters = slack_bot_config_creation_request.answer_filters
+
+    if not raw_channel_names:
         raise HTTPException(
             status_code=400,
             detail="Must provide at least one channel name",
@@ -37,8 +44,8 @@ def create_slack_bot_config(
 
     try:
         cleaned_channel_names = validate_channel_names(
-            channel_names=slack_bot_config_creation_request.channel_names,
-            current_slack_bot_config_id=None,
+            channel_names=raw_channel_names,
+            current_slack_bot_config_id=current_slack_bot_config_id,
             db_session=db_session,
         )
     except ValueError as e:
@@ -47,10 +54,35 @@ def create_slack_bot_config(
             detail=str(e),
         )
 
+    if respond_tag_only and respond_team_member_list:
+        raise ValueError(
+            "Cannot set DanswerBot to only respond to tags only and "
+            "also respond to a predetermined set of users."
+        )
+
     channel_config: ChannelConfig = {
         "channel_names": cleaned_channel_names,
-        "answer_validity_check_enabled": slack_bot_config_creation_request.answer_validity_check_enabled,
     }
+    if respond_tag_only is not None:
+        channel_config["respond_tag_only"] = respond_tag_only
+    if respond_team_member_list:
+        channel_config["respond_team_member_list"] = respond_team_member_list
+    if answer_filters:
+        channel_config["answer_filters"] = answer_filters
+
+    return channel_config
+
+
+@router.post("/admin/slack-bot/config")
+def create_slack_bot_config(
+    slack_bot_config_creation_request: SlackBotConfigCreationRequest,
+    db_session: Session = Depends(get_session),
+    _: User | None = Depends(current_admin_user),
+) -> SlackBotConfig:
+    channel_config = _form_channel_config(
+        slack_bot_config_creation_request, None, db_session
+    )
+
     slack_bot_config_model = insert_slack_bot_config(
         document_sets=slack_bot_config_creation_request.document_sets,
         channel_config=channel_config,
@@ -75,31 +107,14 @@ def patch_slack_bot_config(
     db_session: Session = Depends(get_session),
     _: User | None = Depends(current_admin_user),
 ) -> SlackBotConfig:
-    if not slack_bot_config_creation_request.channel_names:
-        raise HTTPException(
-            status_code=400,
-            detail="Must provide at least one channel name",
-        )
-
-    try:
-        cleaned_channel_names = validate_channel_names(
-            channel_names=slack_bot_config_creation_request.channel_names,
-            current_slack_bot_config_id=slack_bot_config_id,
-            db_session=db_session,
-        )
-    except ValueError as e:
-        raise HTTPException(
-            status_code=400,
-            detail=str(e),
-        )
+    channel_config = _form_channel_config(
+        slack_bot_config_creation_request, slack_bot_config_id, db_session
+    )
 
     slack_bot_config_model = update_slack_bot_config(
         slack_bot_config_id=slack_bot_config_id,
         document_sets=slack_bot_config_creation_request.document_sets,
-        channel_config={
-            "channel_names": cleaned_channel_names,
-            "answer_validity_check_enabled": slack_bot_config_creation_request.answer_validity_check_enabled,
-        },
+        channel_config=channel_config,
         db_session=db_session,
     )
     return SlackBotConfig(
@@ -155,5 +170,5 @@ def put_tokens(tokens: SlackBotTokens) -> None:
 def get_tokens() -> SlackBotTokens:
     try:
         return fetch_tokens()
-    except ValueError:
+    except ConfigNotFoundError:
         raise HTTPException(status_code=404, detail="No tokens found")

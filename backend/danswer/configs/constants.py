@@ -62,7 +62,8 @@ class DocumentSource(str, Enum):
     ZULIP = "zulip"
     LINEAR = "linear"
     HUBSPOT = "hubspot"
-
+    GONG = "gong"
+    GOOGLE_SITES = "google_sites"
 
 class DocumentIndexType(str, Enum):
     COMBINED = "combined"  # Vespa

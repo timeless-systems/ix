@@ -1,36 +1,13 @@
-import { Header } from "@/components/Header";
-import { Sidebar } from "@/components/admin/connectors/Sidebar";
-import {
-  NotebookIcon,
-  GithubIcon,
-  GlobeIcon,
-  GoogleDriveIcon,
-  SlackIcon,
-  KeyIcon,
-  BookstackIcon,
-  ConfluenceIcon,
-  GuruIcon,
-  FileIcon,
-  JiraIcon,
-  SlabIcon,
-  NotionIcon,
-  ZulipIcon,
-  ProductboardIcon,
-  LinearIcon,
-  UsersIcon,
-  ThumbsUpIcon,
-  BookmarkIcon,
-  CPUIcon,
-} from "@/components/icons/icons";
-import { DISABLE_AUTH } from "@/lib/constants";
-import { getCurrentUserSS } from "@/lib/userSS";
-import { redirect } from "next/navigation";
+import { Layout } from "@/components/admin/Layout";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+
+  return await Layout({ children });
+
   let user = null;
   if (!DISABLE_AUTH) {
     user = await getCurrentUserSS();
@@ -285,4 +262,5 @@ export default async function AdminLayout({
       </div>
     </div>
   );
+
 }
