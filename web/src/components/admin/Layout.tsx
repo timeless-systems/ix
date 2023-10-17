@@ -215,6 +215,15 @@ export async function Layout({ children }: { children: React.ReactNode }) {
                 {
                   name: (
                     <div className="flex">
+                      <FileIcon size={16} />
+                      <div className="ml-1">File_NG</div>
+                    </div>
+                  ),
+                  link: "/admin/connectors/file_ng",
+                },
+                {
+                  name: (
+                    <div className="flex">
                       <HubSpotIcon size={16} />
                       <div className="ml-1">HubSpot</div>
                     </div>

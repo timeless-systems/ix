@@ -23,6 +23,8 @@ from danswer.configs.app_configs import DISABLE_GENERATIVE_AI
 from danswer.configs.app_configs import GENERATIVE_MODEL_ACCESS_CHECK_FREQ
 from danswer.configs.constants import GEN_AI_API_KEY_STORAGE_KEY
 from danswer.connectors.file.utils import write_temp_files
+from danswer.connectors.file_ng.utils import write_temp_files_b
+
 from danswer.connectors.google_drive.connector_auth import build_service_account_creds
 from danswer.connectors.google_drive.connector_auth import DB_CREDENTIALS_DICT_TOKEN_KEY
 from danswer.connectors.google_drive.connector_auth import delete_google_app_cred
@@ -287,6 +289,20 @@ def upload_files(
         raise HTTPException(status_code=400, detail=str(e))
     return FileUploadResponse(file_paths=file_paths)
 
+@router.post("/admin/connector/file_ng/upload")
+def upload_files(
+    files: list[UploadFile], _: User = Depends(current_admin_user)
+) -> FileUploadResponse:
+    for file in files:
+        if not file.filename:
+            raise HTTPException(status_code=400, detail="File name cannot be empty")
+    try:
+        file_paths = write_temp_files_b(
+            [(cast(str, file.filename), file.file) for file in files]
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return FileUploadResponse(file_paths=file_paths)
 
 @router.get("/admin/connector/indexing-status")
 def get_connector_indexing_status(

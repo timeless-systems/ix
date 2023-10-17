@@ -40,6 +40,12 @@ export const getSourceMetadata = (sourceType: ValidSources): SourceMetadata => {
         displayName: "File",
         adminPageLink: "/admin/connectors/file",
       };
+      case "file_ng":
+        return {
+          icon: FileIcon,
+          displayName: "File_NG",
+          adminPageLink: "/admin/connectors/file_ng",
+        };      
     case "slack":
       return {
         icon: SlackIcon,

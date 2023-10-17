@@ -25,6 +25,7 @@ const sources: Source[] = [
   { displayName: "Guru", internalName: "guru" },
   { displayName: "Gong", internalName: "gong" },
   { displayName: "File", internalName: "file" },
+  { displayName: "File_NG", internalName: "file_ng" },
   { displayName: "Notion", internalName: "notion" },
   { displayName: "Zulip", internalName: "zulip" },
   { displayName: "Linear", internalName: "linear" },

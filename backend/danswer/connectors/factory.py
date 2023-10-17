@@ -26,8 +26,7 @@ from danswer.connectors.slack.connector import SlackLoadConnector
 from danswer.connectors.slack.connector import SlackPollConnector
 from danswer.connectors.web.connector import WebConnector
 from danswer.connectors.zulip.connector import ZulipConnector
-
-
+from danswer.connectors.file_ng.connector import LocalFileNGConnector
 class ConnectorMissingException(Exception):
     pass
 
@@ -39,6 +38,7 @@ def identify_connector_class(
     connector_map = {
         DocumentSource.WEB: WebConnector,
         DocumentSource.FILE: LocalFileConnector,
+        DocumentSource.FILE_NG: LocalFileNGConnector,
         DocumentSource.SLACK: {
             InputType.LOAD_STATE: SlackLoadConnector,
             InputType.POLL: SlackPollConnector,
