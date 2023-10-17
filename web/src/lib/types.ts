@@ -25,6 +25,7 @@ export type ValidSources =
   | "hubspot"
   | "document360"
   | "file"
+  | "file_ng"
   | "google_sites";
 
 export type ValidInputTypes = "load_state" | "poll" | "event";

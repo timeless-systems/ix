@@ -52,6 +52,14 @@ class DeletionStatus(str, PyEnum):
     FAILED = "failed"
 
 
+# Consistent with Celery task statuses
+class TaskStatus(str, PyEnum):
+    PENDING = "PENDING"
+    STARTED = "STARTED"
+    SUCCESS = "SUCCESS"
+    FAILURE = "FAILURE"
+
+
 class Base(DeclarativeBase):
     pass
 
@@ -451,10 +459,12 @@ class ToolInfo(TypedDict):
 class Persona(Base):
     # TODO introduce user and group ownership for personas
     __tablename__ = "persona"
+
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String)
     # Danswer retrieval, treated as a special tool
     retrieval_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    datetime_aware: Mapped[bool] = mapped_column(Boolean, default=True)
     system_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     tools: Mapped[list[ToolInfo] | None] = mapped_column(
         postgresql.JSONB(), nullable=True
@@ -470,6 +480,16 @@ class Persona(Base):
         "DocumentSet",
         secondary=Persona__DocumentSet.__table__,
         back_populates="personas",
+    )
+
+    # Default personas loaded via yaml cannot have the same name
+    __table_args__ = (
+        Index(
+            "_default_persona_name_idx",
+            "name",
+            unique=True,
+            postgresql_where=(default_persona == True),  # noqa: E712
+        ),
     )
 
 
@@ -488,6 +508,9 @@ class ChatMessage(Base):
     message: Mapped[str] = mapped_column(Text)
     token_count: Mapped[int] = mapped_column(Integer)
     message_type: Mapped[MessageType] = mapped_column(Enum(MessageType))
+    reference_docs: Mapped[dict[str, Any] | None] = mapped_column(
+        postgresql.JSONB(), nullable=True
+    )
     persona_id: Mapped[int | None] = mapped_column(
         ForeignKey("persona.id"), nullable=True
     )
@@ -563,3 +586,22 @@ class SlackBotConfig(Base):
     )
 
     persona: Mapped[Persona | None] = relationship("Persona")
+
+
+class TaskQueueState(Base):
+    # Currently refers to Celery Tasks
+    __tablename__ = "task_queue_jobs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    # Celery task id
+    task_id: Mapped[str] = mapped_column(String)
+    # For any job type, this would be the same
+    task_name: Mapped[str] = mapped_column(String)
+    # Note that if the task dies, this won't necessarily be marked FAILED correctly
+    status: Mapped[TaskStatus] = mapped_column(Enum(TaskStatus))
+    start_time: Mapped[datetime.datetime | None] = mapped_column(
+        DateTime(timezone=True)
+    )
+    register_time: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
