@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import and_
@@ -191,6 +192,7 @@ def create_new_chat_message(
     parent_edit_number: int | None,
     message_type: MessageType,
     db_session: Session,
+    retrieval_docs: dict[str, Any] | None = None,
 ) -> ChatMessage:
     """Creates a new chat message and sets it to the latest message of its parent message"""
     # Get the count of existing edits at the provided message number
@@ -213,6 +215,7 @@ def create_new_chat_message(
         parent_edit_number=parent_edit_number,
         edit_number=new_edit_number,
         message=message,
+        reference_docs=retrieval_docs,
         token_count=token_count,
         message_type=message_type,
     )
@@ -262,22 +265,38 @@ def fetch_persona_by_id(persona_id: int, db_session: Session) -> Persona:
     return persona
 
 
+def fetch_default_persona_by_name(
+    persona_name: str, db_session: Session
+) -> Persona | None:
+    stmt = select(Persona).where(
+        Persona.name == persona_name, Persona.default_persona == True  # noqa: E712
+    )
+    result = db_session.execute(stmt).scalar_one_or_none()
+    return result
+
+
 def upsert_persona(
-    persona_id: int | None,
     name: str,
     retrieval_enabled: bool,
+    datetime_aware: bool,
     system_text: str | None,
     tools: list[ToolInfo] | None,
     hint_text: str | None,
-    default_persona: bool,
     db_session: Session,
+    persona_id: int | None = None,
+    default_persona: bool = False,
     commit: bool = True,
 ) -> Persona:
     persona = db_session.query(Persona).filter_by(id=persona_id).first()
 
+    # Default personas are defined via yaml files at deployment time
+    if persona is None and default_persona:
+        persona = fetch_default_persona_by_name(name, db_session)
+
     if persona:
         persona.name = name
         persona.retrieval_enabled = retrieval_enabled
+        persona.datetime_aware = datetime_aware
         persona.system_text = system_text
         persona.tools = tools
         persona.hint_text = hint_text
@@ -286,6 +305,7 @@ def upsert_persona(
         persona = Persona(
             name=name,
             retrieval_enabled=retrieval_enabled,
+            datetime_aware=datetime_aware,
             system_text=system_text,
             tools=tools,
             hint_text=hint_text,
